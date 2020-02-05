@@ -1,0 +1,197 @@
+---
+title: "Homework Assignment 3"
+author: "Derek Bornath"
+date: "29/01/2020"
+output: html_document
+---
+##Part I
+
+##Killarney Wilderness Park Data Set
+
+#1)enter or read in file
+```{r}
+killarney.park=read.csv(choose.files('Killarney'))
+```
+```{r}
+killarney.park
+```
+
+#2) Make a box plot of the species diversity by lake status
+```{r}
+boxplot(killarney.park$Diversity~killarney.park$status, ylab="Species Diversity", xlab="Lake Status")
+```
+#Looking at the bar plot we can see that there appears to be differences in species diversity depending on the lake status
+
+#3)Run an ANOVA in R to test differences in species diversity among the three lake types. Display summary output
+```{r}
+killarney.species=aov(killarney.park$Diversity~killarney.park$status)
+```
+```{r}
+summary(killarney.species)
+```
+
+#4)The null hypothesis would be that there is no difference when comparing the status of the lake and the species diversity.
+
+#5) The observed test statistic is an f-value of 16.41 and the p-value is p=5.43e-06
+
+#6)Since the p-value is less than 0.05, this indicates that there is a difference in species diversity among the three types of lakes
+
+#7)Determine which groups were sig different from one another by running a tukey test and provide output.
+```{r}
+TukeyHSD(aov(killarney.park$Diversity~killarney.park$status))
+```
+
+#8)Based on the TukeyHSD test there are significant differences in species diversity between neutral lake status and acidic lake status p=0.0000253 and between recovered lake status and acidic late status p=0.0004023.
+
+#9)Does the Killarney data meet the assumptions required for an ANOVA? Perform shapiro-wilk test and levene's test.
+```{r}
+killarney.species$residuals
+```
+```{r}
+shapiro.test(killarney.species$residuals)
+```
+#Since p<0.05 we reject the null hypothesis that the residuals are normally distributed, also seen through this histogram. Indicating that the assumption of residual normal distribution is violated.
+```{r}
+hist(killarney.species$residuals)
+```
+#To test the third assumption via the levene's test to determine the homogeneity of variances.
+```{r}
+library(car)
+```
+```{r}
+leveneTest(killarney.park$Diversity, killarney.park$status)
+```
+#Since the p-value is 0.3773 and therefore greater than 0.05, so we fail to reject the null hpyothesis, indicating our data do meet the assumption of homogeneity of variances.
+
+
+##Esophageal Cancer Data Set
+```{r}
+esoph.cancer=read.csv(choose.files('esoph'))
+```
+#10)Run 2-factor anova to determine cancer cases depending on alcohol consumption, tobacco consumption, or their interaction.
+#a)provide ANOVA table analysis
+```{r}
+cancer.factor=aov(esoph.cancer$ncases~esoph.cancer$Alcohol*esoph.cancer$Tobacco)
+summary(cancer.factor)
+```
+#B) What is your conclusion about the effects of Alcohol and Tobacco based on this analysis? Explain with ANOVA table.
+#The conclusion is that we would fail to reject the null hypothesis that there is no effect of alcohol and tobacco consumption on the number of esophageal cancer cases found as the p-value for alcohol is 0.110, for tobacco is 0.146, and the interaction of both is 0.892, which are all greater than 0.05
+
+
+#11)Run two-factor ANOVA to determine if the number of cases of esophageal cancer depends on age, tobacco use, or their interaction
+#a) provide ANOVA table from the analysis
+```{r}
+cancer.factor2=aov(esoph.cancer$ncases~esoph.cancer$Age*esoph.cancer$Tobacco)
+summary(cancer.factor2)
+```
+#b)Run Tukey test to determine which groups are sig different.
+```{r}
+TukeyHSD(cancer.factor2)
+```
+
+#C) The conclusion from the tukey test there are significant differences between the middle ages and number of cancer cases as p<0.05 for the comparisons of two groups removed of each other were generally statistically significant (ex. 25-34 vs 45-54). The same can be said for comparing amount of tobacco consumed per day. Again comparing comparing two groups removed were generally statistically significant (ex. 0-9g/day vs 20-29 g/day), however 30+ grams of tobacco per day is only significantly different to 0-9 grams/day.
+
+
+#12.Age and alcohol consumption influence esophogeal cancer rates?
+#A)Provide ANOVA table from analysis.
+```{r}
+cancer.factor3=aov(esoph.cancer$ncases~esoph.cancer$Age*esoph.cancer$Alcohol)
+summary(cancer.factor3)
+```
+
+#B)Make an interaction plot to examine results.
+```{r}
+interaction.plot(esoph.cancer$Age,esoph.cancer$Alcohol,esoph.cancer$ncases, legend=T,main='Cancer prevalence with age and alcohol', ylab='Number of Cancer cases', xlab='Age (years)')
+```
+
+#C)Explain Conclusion and reference table and interaction plot
+#There does not appear to be much difference between the number of cases and the amount of alcohol consumed at both the younger age range (25-34), and the oldest age range(75+), however with middle aged individuals and increased alcohol appears to result in differences in the means when looking at the graph. When comparing the ANOVA data, there appears to be a significant interaction for the comparison of age and number of cases (p=2.89e-09) and the comparison of alcohol consumption and number of cases (p=0.00486). In addition, there is a significant interaction between number of alcohol and age (p=0.03633).
+
+
+##PART II- Regression and Correlation
+
+```{r}
+mtcars
+```
+
+
+#13)
+#a)Make a scatterplot of weight (x-axis) versus fuel milage (y-axis)
+```{r}
+plot(mtcars$wt~mtcars$mpg, main='Comparison of weight to fuel mileage', ylab='Fuel Milage (miles/galon)', xlab='car weight')
+```
+#There appears to be a potential negative trend between fuel milage and car weight.
+
+#B)Perform a linear regression to determine if weight has an impact on fuel milage
+```{r}
+car.comp1=glm(mtcars$wt~mtcars$mpg)
+```
+```{r}
+summary.lm(car.comp1)
+```
+
+#C)Add a blue line to the scatterplot indicating the fit of the regression. What is the equation of this line based on your linear regression results?
+```{r}
+plot(mtcars$mpg,mtcars$wt, xlab='Car weight', ylab = 'fuel consumption (miles/gallon)')
+abline(car.comp1, col=c('blue'))
+```
+#Based on the linear regression run above, the equation of the line is y=-0.1409x + 6.0473.
+
+#D)Is gas milage significantly related to car weight? 
+#There is a significant negative relationship to car weight and gas milage based on the regression p-value of 1.294e-10 being less than 0.05. 
+
+#14.A) Make a scatterplot of horsepower (x-axis) vs quarter mile time (y-axis). Does quarter mile time seem to depend on horsepower?
+```{r}
+plot(mtcars$hp,mtcars$qsec, main='Comparison of horsepower and Quarter Mile Time', ylab='Quarter Mile Time', xlab = 'Horsepower')
+```
+#there appears to be a visual trend that with greater horsepower there is a quicker quarter mile time
+
+#B)Perform a linear regression to determine if horsepower has an impact on quarter mile time.
+```{r}
+car.comp2=glm(mtcars$qsec~mtcars$hp)
+summary.lm(car.comp2)
+```
+
+#C)Add a blue line to the scatterplot indicating the fit of the linear regression. What is the equation of the line based on your regression results?
+```{r}
+plot(mtcars$hp,mtcars$qsec, main='Comparison of horsepower and Quarter Mile Time', ylab='Quarter Mile Time', xlab = 'Horsepower', abline(car.comp2, col=c('blue')))
+```
+#The equation of the line would be y=-0.018458x + 20.556354
+
+#D)What would the quarter mile time for a car with 300 horsepower according to your regression fit? Provide the answer to two decimal places.
+#y=-0.018458(300)+ 20.556354
+#y=15.02
+#Therefore it would take 15.02 seconds to complete the quarter mile if the car had 300 horsepower according to the regression fit.
+
+#E)Is car horsepower related to quarter mile time? Provide p-value from regression results.
+#Horsepower is significantly negatively related to quarter mile time as the regression p-value is 5.766e-06.
+
+#F)Use the gvlma function to determine if the assumptions of a linear regression were met. Provide the output from the gvlma analysis. Did this data meet the required assumptions?
+```{r}
+library(gvlma)
+gvlma(lm(car.comp2))
+```
+#All of the required assumptions were met except for the assumption of Kurtosis which is not satisfied as p<0.05 (0.03725555).
+
+
+#15.A)Find two variables that you think might be correlated. You can find this data by Googling for it or using data that you already have access to.
+#I am going to compare fuel utilization and horsepower of the 'mtcars' data set.
+
+#B)Plot the relationship between the two vriables using a scatterplot.
+```{r}
+plot(mtcars$mpg,mtcars$hp, main='Comparison of Fuel Utilization and Car Horsepower', ylab='Horsepower', xlab='Fuel Utilization')
+```
+
+#C)Test for a correlation in R. What is the correlation coefficient.
+```{r}
+car.comp3=glm(mtcars$mpg~mtcars$hp)
+summary.lm(car.comp3)
+```
+#From the regession output you then take the square root of the Multiple R-squared value 0.6024.
+```{r}
+sqrt(0.6024)
+```
+#Therefore the correlation co-efficient is r=0.776
+
+#D)Is the correlation significant? Provide the p-value from the test.
+#Yes the correlation is significant as the regression p-value is 1.788e-07 and there is a strong correlation as the r value is greater than 0.7.
